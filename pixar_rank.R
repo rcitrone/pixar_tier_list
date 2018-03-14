@@ -71,7 +71,6 @@ df_all <- mutate(df_all,
 
 df$n <- as.Date(c(1:nrow(df)))
 pixar_elo <- elo.seq(winner = df$winner, loser= df$loser, Date = df$n)
-View(pixar_elo$lmat)
 pixar_elo_values <- pixar_elo$lmat[nrow(pixar_elo$lmat),]
 pev <- data.frame(winner = names(pixar_elo_values), elo = pixar_elo_values)
 
