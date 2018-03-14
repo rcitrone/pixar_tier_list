@@ -1,16 +1,17 @@
+## Install Necessary Packages
+install.packages('dpylr')
+install.packages('EloRating')
+library(dplyr)
+library(EloRating)
 
-setwd("C:/Users/ncitrone/Documents/IND/pixar")
-
+## Read in Data & Initialize dataframe
 pixar <- read.csv("pixar.csv", stringsAsFactors = FALSE)
-df <- readRDS('movie_history.Rdata')
-#df <- c("Toy Story 3", "Finding Nemo")
-#df <- as.data.frame(t(df))
-#colnames(df) <- c("winner", "loser")
-#df 
-df <- movie_many(df, number = 100)
+#df <- readRDS('movie_history.Rdata')
+df <- c("Toy Story 3", "Cars 2")
+df <- as.data.frame(t(df))
+colnames(df) <- c("winner", "loser")
 
-#saveRDS(df, "movie_history.Rdata")
-
+## Run Functions to Compare Movies
 movie_rate <- function(df, movies=pixar){
   df_one <- df[1,]
   movie_id <- sample(x = c(1:nrow(movies)), size = 2, replace = FALSE)
@@ -37,10 +38,22 @@ movie_many <- function(df, movies = pixar, number = 10){
   }
   return(df)
 }
+########################################################
 
+## IF YOU HAVE MADE PREVIOUS PICKS AND SAVED THEM
+## Then reload them by removing the # and running the line below
+# df <- readRDS("my_picks.Rdata")
 
+## HERE IS WHERE YOU RUN THE FUNCTION TO ADD TO YOUR PICK HISTORY (DF)
+df <- movie_many(df, number = 100) # Run this to make 100 Picks
+## For each selection, you will see m(ovie)1: etc. | m2: etc.
+## Type 1 then hit enter for Movie1, Type 2 then hit enter for Movie2
+## Re-run the same bid of code above to enter another 100 movies.
 
-library(dplyr)
+## Run this line to save your picks so far!
+saveRDS(df, "my_picks.Rdata")
+
+## Run this Code to get the Summary Table of Picks So Far
 df_summary <- df %>% group_by(winner) %>% summarize(
   wins = n()
 )
@@ -56,8 +69,6 @@ df_all <- mutate(df_all,
                  winpct = wins/total
                  )
 
-library(EloRating)
-
 df$n <- as.Date(c(1:nrow(df)))
 pixar_elo <- elo.seq(winner = df$winner, loser= df$loser, Date = df$n)
 View(pixar_elo$lmat)
@@ -67,21 +78,8 @@ pev <- data.frame(winner = names(pixar_elo_values), elo = pixar_elo_values)
 df_all <- left_join(df_all, pev, by = "winner")
 df_all <- df_all[order(df_all$elo, decreasing = TRUE),]
 df_all$rank <-c (1:nrow(df_all))
+# Run Code down to this line to generate updated Rankings
 
-compare_matrix <- rep(0, nrow(pixar)^2)
-dim(compare_matrix) <- c(19, 19)
-compare_matrix <- as.data.frame(compare_matrix)
-colnames(compare_matrix) <- pixar$movie
-rownames(compare_matrix) <- pixar$movie
-for(jj in 1:nrow(df)){
-  winner_row <- match(df$winner[jj], rownames(compare_matrix))
-  loser_column <- match(df$loser[jj], colnames(compare_matrix))
-  compare_matrix[winner_row, loser_column] <- compare_matrix[winner_row, loser_column] +  1
-  print(jj)
-}
+## Code to View rankings:
+View(df_all)
 
-df_test <- df
-df_test$name <- paste0(df_test$winner, ":", df_test$loser)
-dfts <- df_test %>% group_by(name) %>% summarize(
-  count = n(),
-)
